@@ -1,9 +1,26 @@
-// lib/supabaseServer.js
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-export function getServerSupabase() {
-  return createClient(
+export function createClient() {
+  const cookieStore = cookies();
+
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY // server-only
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name)?.value;
+        },
+      },
+    }
   );
+}
+
+
+export async function getWalletSummary(userId) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("wallet_summary", { user_id_input: userId });
+  if (error) throw error;
+  return data;
 }
