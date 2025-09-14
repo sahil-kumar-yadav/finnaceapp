@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
 import { getTopClients, getIncomePatterns, getBurnRateRunway } from "@/lib/insights";
 import TopClients from "@/components/TopClients";
 import IncomePatterns from "@/components/IncomePatterns";
 import BurnRate from "@/components/BurnRate";
+import { createClient } from "@/lib/supabaseServer";
 
 export default function DashboardPage() {
   const [clients, setClients] = useState([]);
