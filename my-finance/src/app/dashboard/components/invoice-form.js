@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function TransactionForm({ onAdd }) {
+export default function InvoiceForm({ onAdd }) {
+  const [clients, setClients] = useState([]);
+  const [clientId, setClientId] = useState("");
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState("INCOME");
-  const [category, setCategory] = useState("");
-  const [wallets, setWallets] = useState([]);
-  const [walletId, setWalletId] = useState("");
+  const [status, setStatus] = useState("draft");
+  const [dueDate, setDueDate] = useState("");
 
   useEffect(() => {
-    const fetchWallets = async () => {
+    const fetchClients = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -20,14 +20,14 @@ export default function TransactionForm({ onAdd }) {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("wallets")
+        .from("clients")
         .select("id, name")
         .eq("user_id", user.id);
 
-      if (!error) setWallets(data);
+      if (!error) setClients(data);
     };
 
-    fetchWallets();
+    fetchClients();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -41,31 +41,46 @@ export default function TransactionForm({ onAdd }) {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("transactions")
+      .from("invoices")
       .insert([
         {
           user_id: user.id,
-          wallet_id: walletId,
+          client_id: clientId,
           amount: parseFloat(amount),
-          type,
-          category,
+          status,
+          due_date: dueDate || null,
         },
       ])
       .select();
 
     if (!error && data && data.length > 0) {
-      onAdd(data[0]);
+      onAdd();
+      setClientId("");
       setAmount("");
-      setCategory("");
-      setWalletId("");
+      setStatus("draft");
+      setDueDate("");
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow rounded-lg p-4 mb-6 space-y-4"
+      className="bg-white shadow rounded-lg p-4 mb-6 space-y-4 max-w-lg"
     >
+      <select
+        value={clientId}
+        onChange={(e) => setClientId(e.target.value)}
+        className="w-full border rounded p-2"
+        required
+      >
+        <option value="">Select Client</option>
+        {clients.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+
       <input
         type="number"
         placeholder="Amount"
@@ -76,43 +91,28 @@ export default function TransactionForm({ onAdd }) {
       />
 
       <select
-        value={type}
-        onChange={(e) => setType(e.target.value)}
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
         className="w-full border rounded p-2"
       >
-        <option value="INCOME">Income</option>
-        <option value="EXPENSE">Expense</option>
-        <option value="TRANSFER">Transfer</option>
-        <option value="INVESTMENT">Investment</option>
+        <option value="draft">Draft</option>
+        <option value="sent">Sent</option>
+        <option value="paid">Paid</option>
+        <option value="overdue">Overdue</option>
       </select>
 
       <input
-        type="text"
-        placeholder="Category"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        type="date"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
         className="w-full border rounded p-2"
       />
-
-      <select
-        value={walletId}
-        onChange={(e) => setWalletId(e.target.value)}
-        className="w-full border rounded p-2"
-        required
-      >
-        <option value="">Select Wallet</option>
-        {wallets.map((wallet) => (
-          <option key={wallet.id} value={wallet.id}>
-            {wallet.name}
-          </option>
-        ))}
-      </select>
 
       <button
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        Add Transaction
+        Add Invoice
       </button>
     </form>
   );
