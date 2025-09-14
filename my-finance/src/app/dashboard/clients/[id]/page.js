@@ -1,46 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ClientDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
   const [client, setClient] = useState(null);
-  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     const fetchClient = async () => {
-      const { data } = await supabase.from("clients").select("*").eq("id", id).single();
-      setClient(data);
-    };
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("id", params.id)
+        .single();
 
-    const fetchTransactions = async () => {
-      const { data } = await supabase.from("transactions").select("*").eq("client_id", id);
-      setTransactions(data || []);
+      if (!error) setClient(data);
     };
-
     fetchClient();
-    fetchTransactions();
-  }, [id]);
+  }, [params.id]);
 
-  if (!client) return <p>Loading...</p>;
+  if (!client) {
+    return <p className="p-6">Loading...</p>;
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold">{client.name}</h1>
-      <p>{client.email} | {client.phone}</p>
-      <p>{client.company}</p>
-      <p className="text-gray-600">{client.notes}</p>
-
-      <h2 className="mt-6 text-lg font-semibold">Transactions</h2>
-      <ul className="mt-2 space-y-2">
-        {transactions.map((tx) => (
-          <li key={tx.id} className="border p-2 rounded">
-            {tx.type} — ₹{tx.amount} ({tx.notes})
-          </li>
-        ))}
-      </ul>
-    </div>
+    <main className="p-6 max-w-lg">
+      <h1 className="text-2xl font-bold mb-4">{client.name}</h1>
+      <div className="bg-white shadow rounded-lg p-4 space-y-2">
+        <p><span className="font-semibold">Email:</span> {client.email || "—"}</p>
+        <p><span className="font-semibold">Phone:</span> {client.phone || "—"}</p>
+        <p><span className="font-semibold">Company:</span> {client.company || "—"}</p>
+        <p><span className="font-semibold">Notes:</span> {client.notes || "—"}</p>
+      </div>
+    </main>
   );
 }

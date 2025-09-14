@@ -1,78 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function NewClientPage() {
-  const router = useRouter();
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    notes: "",
-  });
+export default function ClientsPage() {
+  const [clients, setClients] = useState([]);
 
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const fetchClients = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.from("clients").insert([form]);
-
-      if (error) {
-        console.error("❌ Supabase Error:", error.message);
-        alert("Failed to save client: " + error.message);
-      } else {
-        console.log("✅ Inserted:", data);
-        router.push("/dashboard/clients");
-      }
-    } catch (err) {
-      console.error("❗ Unexpected Error:", err);
-      alert("Something went wrong. Check console for details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!error) setClients(data);
+    };
+    fetchClients();
+  }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold">Add New Client</h1>
-      <form onSubmit={handleSubmit} className="space-y-3 mt-4">
-        {["name", "email", "phone", "company", "notes"].map((field) => (
-          <input
-            key={field}
-            type="text"
-            name={field}
-            placeholder={field[0].toUpperCase() + field.slice(1)}
-            value={form[field]}
-            onChange={handleChange}
-            required={field !== "notes"} // make 'notes' optional
-            className="w-full border p-2 rounded"
-          />
-        ))}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-4 py-2 rounded text-white ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600"
-          }`}
+    <main className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Clients</h1>
+        <Link
+          href="/dashboard/clients/new"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {loading ? "Saving..." : "Save"}
-        </button>
-      </form>
-    </div>
+          + New Client
+        </Link>
+      </div>
+
+      {clients.length === 0 ? (
+        <p className="text-gray-500">No clients yet.</p>
+      ) : (
+        <ul className="bg-white shadow rounded-lg divide-y max-w-2xl">
+          {clients.map((client) => (
+            <li key={client.id} className="p-4 flex justify-between">
+              <div>
+                <p className="font-medium">{client.name}</p>
+                <p className="text-xs text-gray-500">
+                  {client.email || "No email"} · {client.company || "No company"}
+                </p>
+              </div>
+              <Link
+                href={`/dashboard/clients/${client.id}`}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                View
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   );
 }

@@ -1,38 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTopClients, getIncomePatterns, getBurnRateRunway } from "@/lib/insights";
-import TopClients from "@/components/TopClients";
-import IncomePatterns from "@/components/IncomePatterns";
-import BurnRate from "@/components/BurnRate";
-import { createClient } from "@/lib/supabaseServer";
+import { supabase } from "@/lib/supabaseClient";
+import TransactionForm from "./components/transaction-form";
+import TransactionList from "./components/transaction-list";
+import SignOutButton from "@/components/signout-button";
 
 export default function DashboardPage() {
-  const [clients, setClients] = useState([]);
-  const [patterns, setPatterns] = useState([]);
-  const [burnData, setBurnData] = useState(null);
+  const [transactions, setTransactions] = useState([]);
 
+  // Fetch transactions for logged-in user
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setClients(await getTopClients(user.id));
-        setPatterns(await getIncomePatterns(user.id));
-        setBurnData(await getBurnRateRunway(user.id));
-      }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!error) setTransactions(data);
     };
+
     fetchData();
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-xl font-bold">Advanced Insights</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TopClients data={clients} />
-        <BurnRate data={burnData} />
+    <main className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <SignOutButton />
       </div>
-      <IncomePatterns data={patterns} />
-    </div>
+
+      {/* Add new transaction */}
+      <TransactionForm
+        onTransactionAdded={(newTx) =>
+          setTransactions([newTx, ...transactions])
+        }
+      />
+
+      {/* List recent transactions */}
+      <TransactionList transactions={transactions} />
+    </main>
   );
 }

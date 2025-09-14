@@ -1,38 +1,63 @@
 "use client";
 
-import { deleteTransaction } from "@/lib/actions";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function TransactionList({ transactions }) {
-  async function handleDelete(id) {
-    await deleteTransaction(id);
-  }
+  const [wallets, setWallets] = useState({});
 
-  if (!transactions.length) {
+  // Map wallet IDs → wallet names
+  useEffect(() => {
+    const fetchWallets = async () => {
+      const { data, error } = await supabase
+        .from("wallets")
+        .select("id, name, currency");
+
+      if (!error) {
+        const map = {};
+        data.forEach((w) => {
+          map[w.id] = `${w.name} (${w.currency})`;
+        });
+        setWallets(map);
+      }
+    };
+    fetchWallets();
+  }, []);
+
+  if (transactions.length === 0) {
     return <p className="text-gray-500">No transactions yet.</p>;
   }
 
   return (
-    <ul className="space-y-3">
-      {transactions.map((t) => (
-        <li
-          key={t.id}
-          className="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded shadow"
-        >
-          <div>
-            <p className="font-medium">
-              {t.type}: {t.amount}
-            </p>
-            <p className="text-sm text-gray-500">{t.category} — {t.notes}</p>
-            <p className="text-xs text-gray-400">{t.transaction_date}</p>
-          </div>
-          <button
-            onClick={() => handleDelete(t.id)}
-            className="text-red-600 hover:underline"
+    <div className="bg-white shadow rounded-lg p-4 max-w-2xl">
+      <h2 className="text-lg font-semibold mb-3">Recent Transactions</h2>
+      <ul className="divide-y">
+        {transactions.map((tx) => (
+          <li
+            key={tx.id}
+            className="flex justify-between py-2 text-sm"
           >
-            Delete
-          </button>
-        </li>
-      ))}
-    </ul>
+            <div>
+              <p className="font-medium">{tx.notes || "No description"}</p>
+              <p className="text-xs text-gray-500">
+                {tx.category || "Uncategorized"} ·{" "}
+                {wallets[tx.wallet_id] || "Wallet"}
+              </p>
+            </div>
+            <span
+              className={`font-medium ${
+                tx.type === "INCOME"
+                  ? "text-green-600"
+                  : tx.type === "EXPENSE"
+                  ? "text-red-600"
+                  : "text-blue-600"
+              }`}
+            >
+              {tx.type === "EXPENSE" ? "-" : "+"}₹{tx.amount}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/components/signout-button.js
 "use client";
 
 import { supabase } from "@/lib/supabaseClient";
@@ -8,15 +9,15 @@ export default function SignOutButton() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.replace("/(auth)/login");
   }
 
   return (
     <button
       onClick={handleSignOut}
-      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+      className="px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm"
     >
-      Sign Out
+      Sign out
     </button>
   );
 }

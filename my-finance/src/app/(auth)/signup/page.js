@@ -1,76 +1,124 @@
+// src/app/(auth)/signup/page.js
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient"; // Make sure this is correctly configured
+import { supabase } from "@/lib/supabaseClient";
 
+/**
+ * Signup page (email + password)
+ * - Creates new user in Supabase
+ * - Redirects to /dashboard after signup
+ */
 export default function SignupPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
-  const handleSignup = async (e) => {
+  useEffect(() => {
+    let mounted = true;
+    async function check() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (mounted && session) router.replace("/dashboard");
+    }
+    check();
+    return () => (mounted = false);
+  }, [router]);
+
+  function handleChange(e) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    setErrorMsg(""); // reset error
+    setMessage(null);
 
+    if (!form.email || !form.password) {
+      setMessage({ type: "error", text: "Fill in both fields" });
+      return;
+    }
+
+    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: form.email,
+        password: form.password,
       });
 
-      console.log("Signup response:", { data, error });
-
       if (error) {
-        // Supabase error (auth)
-        setErrorMsg(`Signup error: ${error.message}`);
-        return;
+        setMessage({ type: "error", text: error.message });
+      } else {
+        setMessage({
+          type: "success",
+          text:
+            "Account created! Please check your inbox to confirm your email before logging in.",
+        });
+        setForm({ email: "", password: "" });
       }
-
-      // Check if session/user exists (may depend on email confirmation settings)
-      if (!data.user) {
-        setErrorMsg("Signup succeeded, but no user was returned.");
-        return;
-      }
-
-      // Redirect on success
-      router.push("/dashboard");
     } catch (err) {
-      console.error("Unexpected error during signup:", err);
-      setErrorMsg("Unexpected error: " + (err.message || "Unknown error"));
+      setMessage({ type: "error", text: err.message });
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center h-[80vh]">
-      <h1 className="text-2xl font-bold mb-4">Create Account</h1>
-      <form onSubmit={handleSignup} className="space-y-4 w-80">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border w-full px-4 py-2 rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Create password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border w-full px-4 py-2 rounded"
-          required
-        />
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white w-full px-4 py-2 rounded"
-        >
-          Sign Up
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+        <h1 className="text-2xl font-semibold mb-2">Create account</h1>
+        <p className="text-sm text-slate-500 mb-4">
+          Sign up with email + password.
+        </p>
 
-      {errorMsg && <p className="mt-4 text-sm text-red-600">{errorMsg}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="you@work.com"
+            className="w-full border rounded p-2"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className="w-full border rounded p-2"
+            required
+          />
+          <button
+            type="submit"
+            className={`w-full py-2 rounded text-white ${
+              loading ? "bg-slate-400" : "bg-sky-600 hover:bg-sky-700"
+            }`}
+            disabled={loading}
+          >
+            {loading ? "Signing up..." : "Sign up"}
+          </button>
+          {message && (
+            <p
+              className={`text-sm ${
+                message.type === "error" ? "text-red-600" : "text-green-600"
+              }`}
+            >
+              {message.text}
+            </p>
+          )}
+        </form>
+
+        <div className="mt-6 text-center text-sm text-slate-500">
+          Already have an account?{" "}
+          <a href="/(auth)/login" className="text-sky-600 hover:underline">
+            Sign in
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
