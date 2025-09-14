@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getWallets, createWallet, deleteWallet } from "@/lib/wallets";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabaseServer";
 
 export default function WalletsPage() {
     const [wallets, setWallets] = useState([]);
