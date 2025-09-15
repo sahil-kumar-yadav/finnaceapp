@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function TransactionForm({ onAdd }) {
+export default function TransactionForm({ onTransactionAdded }) {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("INCOME");
   const [category, setCategory] = useState("");
@@ -51,10 +51,18 @@ export default function TransactionForm({ onAdd }) {
           category,
         },
       ])
-      .select();
+      .select("id, amount, type, category, transaction_date, wallet_id");
 
     if (!error && data && data.length > 0) {
-      onAdd(data[0]);
+      // fetch wallet name for the new transaction
+      const wallet = wallets.find((w) => w.id === walletId);
+      const txWithWallet = {
+        ...data[0],
+        wallets: wallet ? { name: wallet.name } : null,
+      };
+
+      onTransactionAdded(txWithWallet);
+
       setAmount("");
       setCategory("");
       setWalletId("");

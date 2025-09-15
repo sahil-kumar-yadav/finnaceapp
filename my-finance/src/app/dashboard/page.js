@@ -19,7 +19,7 @@ export default function DashboardPage() {
 
       const { data, error } = await supabase
         .from("transactions")
-        .select("*")
+        .select("id, amount, type, category, transaction_date, wallets(name)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       {/* Add new transaction */}
       <TransactionForm
         onTransactionAdded={(newTx) =>
-          setTransactions([newTx, ...transactions])
+          setTransactions((prev) => [newTx, ...prev])
         }
       />
 
