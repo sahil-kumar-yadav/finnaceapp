@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 💼 Freelance Finance CRM
 
-## Getting Started
+An **open-source Finance CRM Dashboard** built with **Next.js (App Router) + Supabase + Tailwind CSS**.
+Designed for **freelancers and solopreneurs** to **track clients, invoices, wallets, and transactions** in one clean dashboard.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Features
+
+* 🔐 **Authentication** with Supabase (Sign up, Login, Logout, Middleware Protected Routes)
+* 👥 **Client Management** – Add, view, and track client details
+* 🧾 **Invoices** – Create, manage, and monitor invoice status (`draft`, `sent`, `paid`, `overdue`)
+* 💰 **Transactions** – Record income, expenses, transfers, and investments
+* 👛 **Wallets** – Multi-wallet support with balances & currencies (default: INR)
+* 📊 **Reports & Insights** *(coming soon)* – Burn rate, income patterns, top clients
+* 🎨 **Modern UI** – TailwindCSS + clean dashboard layout
+* 🚀 **Deployed easily** on Vercel (frontend) + Supabase (backend)
+
+---
+
+## 🖼️ Screenshots
+
+### 🔐 Auth Flow
+
+<img src="./public/demo-auth.png" width="600">
+
+### 📊 Dashboard
+
+<img src="./public/demo-dashboard.png" width="600">
+
+### 🧾 Invoices
+
+<img src="./public/demo-invoices.png" width="600">
+
+### 👥 Clients
+
+<img src="./public/demo-clients.png" width="600">
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** [Next.js 14 (App Router)](https://nextjs.org/) + React
+* **Backend / Database:** [Supabase](https://supabase.com/) (Postgres + Auth + Row Level Security)
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+* **Deployment:** [Vercel](https://vercel.com/)
+* **Charts (coming soon):** Recharts for insights & reports
+
+---
+
+## ⚡ Getting Started
+
+1. **Clone repo**
+
+   ```bash
+   git clone https://github.com/yourusername/freelance-finance-crm.git
+   cd freelance-finance-crm
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment**
+
+   * Create `.env.local`
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+   ```
+
+4. **Run locally**
+
+   ```bash
+   npm run dev
+   ```
+
+5. Visit 👉 [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🗄️ Database Schema
+
+```sql
+-- Profiles
+profiles(id, full_name, avatar_url)
+
+-- Clients
+clients(id, user_id, name, email, phone, company, notes)
+
+-- Invoices
+invoices(id, user_id, client_id, issue_date, due_date, amount, status, notes)
+
+-- Wallets
+wallets(id, user_id, name, currency, balance)
+
+-- Transactions
+transactions(id, user_id, wallet_id, amount, type, category, notes, client_id)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🌟 Why This Project?
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* **For Freelancers / Solopreneurs:** replaces spreadsheets with a modern dashboard
+* **For Recruiters:** shows end-to-end ability to design, build, and deploy a SaaS-style product
+* **For Developers:** clean architecture, Supabase integration, and dashboard scaffolding
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Roadmap
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* [ ] Stripe Integration → subscription + payments
+* [ ] Premium Reports → Burn rate, MRR, income trends
+* [ ] Role-based access (admin vs user)
+* [ ] Deploy on Vercel (demo link soon)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🤝 Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Want to improve features, add charts, or fix UI? PRs are welcome 🚀
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📬 Contact
+
+👨‍💻 **Sahil Kumar Yadav**
+📧 \[[your.email@example.com](mailto:your.email@example.com)]
+🔗 [LinkedIn](https://linkedin.com/in/your-linkedin)
+🔗 [Portfolio](https://yourportfolio.com)
+
+---
+
+### ⭐ If you like this project, don’t forget to **star the repo**!
+
+---
