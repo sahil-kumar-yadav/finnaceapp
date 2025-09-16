@@ -1,12 +1,14 @@
 import { createClient } from "./supabaseServer";
 
 export async function getTopClients(userId) {
-  const supabase = await createClient(); // ⬅️ await here
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("top_clients", {
     user_id_input: userId,
   });
   if (error) throw error;
-  return data;
+
+  // ✅ Ensure JSON-safe objects
+  return data ? JSON.parse(JSON.stringify(data)) : [];
 }
 
 export async function getIncomePatterns(userId) {
@@ -15,7 +17,8 @@ export async function getIncomePatterns(userId) {
     user_id_input: userId,
   });
   if (error) throw error;
-  return data;
+
+  return data ? JSON.parse(JSON.stringify(data)) : [];
 }
 
 export async function getBurnRateRunway(userId) {
@@ -24,5 +27,7 @@ export async function getBurnRateRunway(userId) {
     user_id_input: userId,
   });
   if (error) throw error;
-  return data[0];
+
+  return data && data[0] ? JSON.parse(JSON.stringify(data[0])) : null;
 }
+

@@ -1,52 +1,33 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabaseServer";
+import {
+  getTopClients,
+  getIncomePatterns,
+  getBurnRateRunway,
+} from "@/lib/insights";
 import BurnRate from "@/components/BurnRate";
 import ExpenseCategoryChart from "@/components/ExpenseCategoryChart";
 import MonthlyTrendChart from "@/components/MonthlyTrendChart";
 import TopClients from "@/components/TopClients";
 import IncomePatterns from "@/components/IncomePatterns";
 import SignOutButton from "@/components/signout-button";
-import { getBurnRateRunway, getIncomePatterns, getTopClients } from "@/lib/insights";
 
+export default async function ReportsPage() {
+  const supabase = await createClient();
 
-export default function ReportsPage() {
-  const [insights, setInsights] = useState(null);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+  if (!user) {
+    return <p className="p-6">Not logged in.</p>;
+  }
 
-      try {
-        const [topClients, incomePatterns, burnRate, categories, monthlyTrend] =
-          await Promise.all([
-            getTopClients(user.id),
-            getIncomePatterns(user.id),
-            getBurnRateRunway(user.id),
-            getExpenseCategories(user.id),
-            getMonthlyTrend(user.id),
-          ]);
-
-        setInsights({
-          topClients,
-          incomePatterns,
-          burnRate,
-          categories,
-          monthlyTrend,
-        });
-      } catch (err) {
-        console.error("Failed to fetch insights:", err);
-      }
-    };
-
-    fetchInsights();
-  }, []);
-
-  if (!insights) return <p className="p-6">Loading reports...</p>;
+  // Fetch insights using RPC or server queries
+  const [topClients, incomePatterns, burnRate] = await Promise.all([
+    getTopClients(user.id),
+    getIncomePatterns(user.id),
+    getBurnRateRunway(user.id),
+  ]);
 
   return (
     <main className="p-6 space-y-8">
@@ -55,20 +36,17 @@ export default function ReportsPage() {
         <SignOutButton />
       </div>
 
-      {/* Burn rate + Expense categories */}
       <div className="grid md:grid-cols-2 gap-8">
-        <BurnRate data={insights.burnRate} />
-        <ExpenseCategoryChart data={insights.categories} />
+        <BurnRate data={burnRate} />
+        <ExpenseCategoryChart data={incomePatterns} />
       </div>
 
-      {/* Monthly trend + Top clients */}
       <div className="grid md:grid-cols-2 gap-8">
-        <MonthlyTrendChart data={insights.monthlyTrend} />
-        <TopClients data={insights.topClients} />
+        <MonthlyTrendChart data={incomePatterns} />
+        <TopClients data={topClients} />
       </div>
 
-      {/* Income patterns */}
-      <IncomePatterns data={insights.incomePatterns} />
+      <IncomePatterns data={incomePatterns} />
     </main>
   );
 }
