@@ -1,8 +1,29 @@
-
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-[80vh]">Loading...</div>;
+  }
+
+  if (user) {
+    // Optionally, you could show a dashboard preview here
+    return null;
+  }
+
   return (
     <section className="flex flex-col items-center justify-center h-[80vh] text-center">
       <h1 className="text-4xl font-bold text-indigo-700 mb-4">
@@ -27,7 +48,6 @@ export default function Home() {
           Sign Up
         </Link>
       </div>
-
     </section>
   );
 }
